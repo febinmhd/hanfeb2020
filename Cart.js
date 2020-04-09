@@ -1,17 +1,32 @@
 import React, { Component } from 'react'
-import { View,Text,Image, Button, Alert } from 'react-native'
+import { View,Text,Image, Button, Alert, ImageBackground, TouchableOpacity, TextInput , Linking} from 'react-native'
 import { connect } from 'react-redux'
 import { ScrollView } from 'react-native-gesture-handler'
+import { Updates } from 'expo'
+import update from 'react-addons-update'
+import axios from 'axios'
+import Config from 'react-native-config'
+
+
+
+import {Ionicons, MaterialIcons, AntDesign, Feather, MaterialCommunityIcons,FontAwesome} from '@expo/vector-icons'
 
 class Cart extends Component {
+
+
+
+  
   state={
     quantity:null,
     name:null,
     image:null,
     unitprice:null,
     quantity:null,
-    totalprice:null
+    totalprice:null,
+    grandtotal:null,
   }
+
+
 
   async quantity (itemname,val){
     if(val==='+'){
@@ -67,32 +82,129 @@ class Cart extends Component {
          this.props.ShopReducer.cart.splice(i,1)
          console.log(this.props.ShopReducer.cart)
          await this.props.delete();
-        }}
-        
-    
+        }}  
   }
+
+  
+handlename = (text) => {
+  this.setState({ name: text })
+}
+
+handlenumber = (text) => {
+  this.setState({ number: text })
+}
+handleaddress = (text) => {
+  this.setState({ address: text })
+}
+
+  submit= async event=>{
+    let total1= null;
+for (let i = 0; i < await this.props.ShopReducer.cart.length; i++){
+  const price = this.props.ShopReducer.cart[i][0][4];
+ 
+   total1 += price;
+}
+   // console.log(process.env.API)
+
+    axios({
+      method: 'post',
+      url:NODE_ENV.API,
+    
+      headers: { 'Content-Type':'application/json' },
+      data: {
+          "name": this.state.name,
+          "number":this.state.number,
+          "address":this.state.address,
+          "cart":this.props.ShopReducer.cart,
+          "total":total1
+          }
+
+      })
+      .then(async response=> {
+        await console.log(response)
+       })
+
+
+  //  console.log(this.state.name,this.state.number,this.state.address,this.props.ShopReducer.cart,total1)
+
+  }; 
+
+
     render() {
+      let total= null;
+      for (let i = 0; i < this.props.ShopReducer.cart.length; i++){
+        const price = this.props.ShopReducer.cart[i][0][4];
+         total += price;
+    
+      }
+ 
         return (
             <ScrollView>
-                <Text>CART</Text>
-                <Text>CART  :  {this.props.ShopReducer.cart}</Text>
-                <Text> {this.props.ShopReducer.products[1]}</Text>
-                
+              <ImageBackground source={require('./images/new.jpg')} style={{flex: 1,resizeMode: "cover",justifyContent: "center"}}>
+                <Text style={{textAlign:'center', margin:50, fontFamily:'dancingbold',fontSize:50}}>Your Awesome Cart</Text>
                 {this.props.ShopReducer.cart.map((cartitems,index)=>
-                <View key={index}>
-                  <Text>INDEX : {index}</Text>
-                <Text>NAME : {cartitems[0][0]}</Text>
+                <View key={index} style={{alignItems:'center',margin:10}}>  
+                <Text style={{fontFamily:'pompiere',fontSize:30,fontWeight: 'bold',color:'green'}}>{cartitems[0][0]}</Text>
                 <Image source={cartitems[0][1]} style={{width: 185, height: 185, borderRadius:25,margin:5}} />
-                <Text>UNIT PRICE : {cartitems[0][2]}</Text>
-                <Text>QUANITY: {cartitems[0][3]}</Text>
-                <Text>TOTAL PRICE : {cartitems[0][4]}</Text>
-                <Button onPress={()=>this.quantity(cartitems[0][0],'+')} title="+"/>
-                <Button onPress={()=>this.quantity(cartitems[0][0],'-')} title="-"/>
-                <Button onPress={()=>this.delete(cartitems[0][0])} title="delete"/>
+                <Text  style={{fontFamily:'pompiere',fontSize:25,fontWeight: 'bold'}}>Unit Price : {cartitems[0][2]} RS</Text>
+                <Text  style={{fontFamily:'pompiere',fontSize:25,fontWeight: 'bold'}}>Quantity: {cartitems[0][3]}</Text>
+                <Text  style={{fontFamily:'pompiere',fontSize:25,fontWeight: 'bold'}}>Total Price : {cartitems[0][4]} RS</Text>
+                <View style={{display:"flex",flexDirection:"row"}}>
+                <TouchableOpacity onPress={()=>this.quantity(cartitems[0][0],'+')} style={{marginRight:7}}>
+                  <Ionicons name="md-add-circle" size={35} color='green'/>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={()=>this.quantity(cartitems[0][0],'-')} style={{marginRight:7}} >
+                  <MaterialCommunityIcons name="minus-circle" size={35} color='green'/>
+                  </TouchableOpacity>
+                  <TouchableOpacity  onPress={()=>this.delete(cartitems[0][0])} >
+                  <MaterialCommunityIcons name='delete' size={35} color='green' />
+                  </TouchableOpacity>
                 </View>
+                </View>
+                
                 )}
                 
-      
+                <View style={{alignItems:"center", margin:50}}>
+                <Text style={{fontFamily:'pompiere',fontSize:30,fontWeight: 'bold',color:'green'}}>Your Total :{total}RS</Text>
+                </View>
+
+                <View style={{margin:20}}>
+                    <Text style={{textAlign:'center',fontFamily:'pompiere',fontSize:35,margin:5,color:'green'}}>Delivery Details</Text>
+                     <Text style={{textAlign:'center',fontFamily:'pompiere',fontSize:30,margin:5}}> Name : </Text>
+                     <View style={{alignItems:'center'}}>
+                     <TextInput onChangeText = {this.handlename} style={{ height: 40,width:300, borderColor: 'gray', borderWidth: 1 , borderColor:'green'}}/>
+                     </View>
+                      <Text style={{textAlign:'center',fontFamily:'pompiere',fontSize:30,margin:5}}>Contact Number :  </Text>
+                      <View style={{alignItems:'center'}}>
+                      <TextInput onChangeText = {this.handlenumber} style={{ height: 40,width:300, borderColor: 'gray', borderWidth: 1, borderColor:'green' }}/>
+                      </View>
+                      <Text style={{textAlign:'center',fontFamily:'pompiere',fontSize:30,margin:5}}> Delivery Address : </Text>
+                      <View style={{alignItems:'center'}}>
+                      <TextInput onChangeText = {this.handleaddress} style={{height: 150,width:300, borderColor: 'gray', borderWidth: 1 , borderColor:'green',textAlign:'left'}}/>
+                      </View>
+                      <TouchableOpacity onPress={this.submit} style={{alignItems:'center',marginBottom:30,marginTop:15}}>
+                      <View style={{width:90,height:45,backgroundColor:'green',borderRadius:100,justifyContent:'center', alignItems:'center'}}>
+                      <Text style={{fontFamily:'pompiere',fontSize:17,color:'white'}}>Submit</Text>
+                      </View>
+                      </TouchableOpacity>
+                  </View>
+                  <View>
+                    <Text style={{textAlign:'center', margin:5, fontFamily:'dancingbold',fontSize:50}}>Contact Us</Text>
+                  </View>
+                  <View style={{margin:20,display:'flex',flexDirection:'row',justifyContent:'space-evenly'}}>
+                  <TouchableOpacity onPress={() => { Linking.openURL("https://www.instagram.com/hanfeb__artism/?hl=en"); }}>
+                  <AntDesign name="instagram" size={35} color='green'/>
+                  </TouchableOpacity>
+                  <TouchableOpacity  onPress={() => { Linking.openURL("https://web.facebook.com/Hanaanfebin/"); }}>
+                  <AntDesign name="facebook-square" size={35} color='green'/>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => { Linking.openURL("https://api.whatsapp.com/send?phone=+91 73069 71226"); }}>
+                  <FontAwesome name="whatsapp" size={35} color='green'/>
+                  </TouchableOpacity>
+                  </View>
+
+                  </ImageBackground>
+
             </ScrollView>
            
         )
